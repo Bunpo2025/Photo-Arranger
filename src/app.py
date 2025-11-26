@@ -22,7 +22,7 @@ class PhotoArrangerApp:
         """
         self.app = QApplication(argv)
         self.app.setApplicationName("Photo-Arranger")
-        self.app.setApplicationVersion("0.1.0")
+        self.app.setApplicationVersion("1.0.0")
         
         # ハイDPIサポート
         self.app.setHighDpiScaleFactorRoundingPolicy(
