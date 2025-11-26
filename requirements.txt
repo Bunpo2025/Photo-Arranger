@@ -1,0 +1,19 @@
+# Photo-Arranger Dependencies
+# Python 3.10+
+
+# UI Framework
+PyQt6>=6.5.0
+
+# Image Processing
+opencv-python>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# Color Science
+colour-science>=0.4.3
+
+# Development & Testing
+pytest>=7.4.0
+pytest-qt>=4.2.0
+
+
