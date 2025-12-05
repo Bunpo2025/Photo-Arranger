@@ -18,6 +18,8 @@ class SliderPanel(QWidget):
     
     def __init__(self):
         super().__init__()
+        self._image_size = (0, 0)
+        self._dpi = 300  # デフォルトDPI
         self._setup_ui()
         self._connect_signals()
     
@@ -39,13 +41,21 @@ class SliderPanel(QWidget):
         self.brightness_slider = self._create_slider_row("明るさ", -100, 100, 0)
         layout.addLayout(self.brightness_slider["layout"])
         
-        # リセットボタン
-        button_layout = QHBoxLayout()
+        # リセットボタン + 画像情報表示
+        info_layout = QHBoxLayout()
+        
+        # 画像情報ラベル
+        self.info_label = QLabel("画像: -- | -- cm × -- cm")
+        self.info_label.setStyleSheet("color: #888; font-size: 11px;")
+        info_layout.addWidget(self.info_label)
+        
+        info_layout.addStretch()
+        
         self.reset_button = QPushButton("リセット")
         self.reset_button.setMaximumWidth(100)
-        button_layout.addStretch()
-        button_layout.addWidget(self.reset_button)
-        layout.addLayout(button_layout)
+        info_layout.addWidget(self.reset_button)
+        
+        layout.addLayout(info_layout)
     
     def _create_slider_row(
         self,
@@ -139,6 +149,21 @@ class SliderPanel(QWidget):
             "brightness": bright_val
         })
     
+    def _update_info_display(self):
+        """情報表示を更新"""
+        width, height = self._image_size
+        dpi = self._dpi
+        
+        if width > 0 and height > 0:
+            # cm計算
+            width_cm = width * 2.54 / dpi
+            height_cm = height * 2.54 / dpi
+            self.info_label.setText(
+                f"{width} × {height} px | {width_cm:.1f} cm × {height_cm:.1f} cm"
+            )
+        else:
+            self.info_label.setText("画像: -- | -- cm × -- cm")
+    
     def reset(self):
         """スライダーをリセット"""
         self.temperature_slider["slider"].setValue(self.temperature_slider["default"])
@@ -157,4 +182,31 @@ class SliderPanel(QWidget):
             "tint": self.tint_slider["slider"].value(),
             "brightness": self.brightness_slider["slider"].value()
         }
-
+    
+    def update_image_info(self, width: int, height: int, dpi: int = None):
+        """
+        画像情報を更新
+        
+        Args:
+            width: 画像幅（ピクセル）
+            height: 画像高さ（ピクセル）
+            dpi: DPI値（Noneの場合は現在の値を維持）
+        """
+        self._image_size = (width, height)
+        if dpi is not None:
+            self._dpi = dpi
+        self._update_info_display()
+    
+    def clear_image_info(self):
+        """画像情報をクリア"""
+        self._image_size = (0, 0)
+        self.info_label.setText("画像: -- | -- cm × -- cm")
+    
+    def get_dpi(self) -> int:
+        """現在のDPI値を取得"""
+        return self._dpi
+    
+    def set_dpi(self, dpi: int):
+        """DPI値を設定"""
+        self._dpi = dpi
+        self._update_info_display()

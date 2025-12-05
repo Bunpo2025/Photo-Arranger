@@ -166,5 +166,122 @@ class ImageProcessor:
         result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
         
         return result
+    
+    def crop_image(self, image: np.ndarray, x: int, y: int, width: int, height: int) -> np.ndarray:
+        """
+        画像を切り抜き
+        
+        Args:
+            image: 入力画像（BGR形式）
+            x: 左上のX座標
+            y: 左上のY座標
+            width: 切り抜き幅
+            height: 切り抜き高さ
+        
+        Returns:
+            切り抜かれた画像
+        """
+        h, w = image.shape[:2]
+        
+        # 座標のバリデーション
+        x = max(0, min(x, w - 1))
+        y = max(0, min(y, h - 1))
+        width = max(1, min(width, w - x))
+        height = max(1, min(height, h - y))
+        
+        return image[y:y+height, x:x+width].copy()
+    
+    def resize_image(
+        self,
+        image: np.ndarray,
+        width: int | None = None,
+        height: int | None = None,
+        scale_percent: float | None = None,
+        maintain_aspect: bool = True
+    ) -> np.ndarray:
+        """
+        画像をリサイズ
+        
+        Args:
+            image: 入力画像（BGR形式）
+            width: 新しい幅（ピクセル）
+            height: 新しい高さ（ピクセル）
+            scale_percent: スケール（パーセント、100が等倍）
+            maintain_aspect: アスペクト比を維持するか
+        
+        Returns:
+            リサイズされた画像
+        """
+        h, w = image.shape[:2]
+        
+        if scale_percent is not None:
+            # パーセント指定
+            new_width = int(w * scale_percent / 100)
+            new_height = int(h * scale_percent / 100)
+        elif width is not None and height is not None:
+            if maintain_aspect:
+                # アスペクト比を維持
+                aspect = w / h
+                if width / height > aspect:
+                    new_height = height
+                    new_width = int(height * aspect)
+                else:
+                    new_width = width
+                    new_height = int(width / aspect)
+            else:
+                new_width = width
+                new_height = height
+        elif width is not None:
+            # 幅のみ指定
+            new_width = width
+            new_height = int(h * width / w) if maintain_aspect else h
+        elif height is not None:
+            # 高さのみ指定
+            new_height = height
+            new_width = int(w * height / h) if maintain_aspect else w
+        else:
+            return image.copy()
+        
+        # 最小サイズを保証
+        new_width = max(1, new_width)
+        new_height = max(1, new_height)
+        
+        # リサイズ（縮小時はINTER_AREA、拡大時はINTER_CUBIC）
+        if new_width < w or new_height < h:
+            interpolation = cv2.INTER_AREA
+        else:
+            interpolation = cv2.INTER_CUBIC
+        
+        return cv2.resize(image, (new_width, new_height), interpolation=interpolation)
+    
+    @staticmethod
+    def cm_to_pixels(cm: float, dpi: int = 300) -> int:
+        """
+        センチメートルをピクセルに変換
+        
+        Args:
+            cm: センチメートル値
+            dpi: 解像度（dots per inch）
+        
+        Returns:
+            ピクセル値
+        """
+        inches = cm / 2.54
+        return int(inches * dpi)
+    
+    @staticmethod
+    def pixels_to_cm(pixels: int, dpi: int = 300) -> float:
+        """
+        ピクセルをセンチメートルに変換
+        
+        Args:
+            pixels: ピクセル値
+            dpi: 解像度（dots per inch）
+        
+        Returns:
+            センチメートル値
+        """
+        inches = pixels / dpi
+        return inches * 2.54
 
 
